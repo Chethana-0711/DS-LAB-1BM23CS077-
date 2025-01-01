@@ -1,0 +1,74 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_KEYS 5
+#define MAX_HT_SIZE 7
+
+struct Employee {
+    int key;
+    int address;
+};
+
+struct HashTable {
+    struct Employee* table[MAX_HT_SIZE];
+};
+
+int hashFunction(int key, int m) {
+    return key % m;
+}
+
+int linearProbing(struct HashTable* ht, int key, int m) {
+    int index = hashFunction(key, m);
+    int originalIndex = index;
+
+    while (ht->table[index] != NULL && ht->table[index]->key != key) {
+        index = (index + 1) % m;
+        if (index == originalIndex) {
+            return -1;
+        }
+    }
+    return index;
+}
+
+void insert(struct HashTable* ht, int key, int address, int m) {
+    int index = linearProbing(ht, key, m);
+    
+    if (index == -1) {
+        printf("Hash table is full, unable to insert key: %d\n", key);
+        return;
+    }
+    
+    struct Employee* emp = (struct Employee*)malloc(sizeof(struct Employee));
+    emp->key = key;
+    emp->address = address;
+    
+    ht->table[index] = emp;
+}
+
+void display(struct HashTable* ht, int m) {
+    for (int i = 0; i < m; i++) {
+        if (ht->table[i] != NULL) {
+            printf("Index: %d, Key: %d\n", i, ht->table[i]->key);
+        }
+    }
+}
+
+int main() {
+    struct HashTable ht;
+    for (int i = 0; i < MAX_HT_SIZE; i++) {
+        ht.table[i] = NULL;
+    }
+
+    int m = MAX_HT_SIZE;
+    
+    int keys[MAX_KEYS] = {1001, 2045, 1003, 1023, 3050};
+    int addresses[MAX_KEYS] = {10, 20, 30, 40, 60};
+    
+    for (int i = 0; i < MAX_KEYS; i++) {
+        insert(&ht, keys[i], addresses[i], m);
+    }
+    
+    display(&ht, m);
+    
+    return 0;
+}
