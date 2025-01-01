@@ -1,0 +1,101 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <string.h>
+
+#define MAX 100
+
+typedef struct {
+    char data[MAX];
+    int top;
+} Stack;
+
+void push(Stack *stack, char value);
+char pop(Stack *stack);
+char peek(Stack *stack);
+int isEmpty(Stack *stack);
+int precedence(char operator);
+int isOperator(char symbol);
+void infixToPostfix(const char *infix, char *postfix);
+
+int main() {
+    char infix[MAX], postfix[MAX];
+    printf("Enter a valid parenthesized infix expression: ");
+    scanf("%s", infix);
+    infixToPostfix(infix, postfix);
+    printf("Postfix expression: %s\n", postfix);
+    return 0;
+}
+
+void push(Stack *stack, char value) {
+    if (stack->top == MAX - 1) {
+        printf("Stack overflow\n");
+        exit(1);
+    }
+    stack->data[++stack->top] = value;
+}
+
+char pop(Stack *stack) {
+    if (isEmpty(stack)) {
+        printf("Stack underflow\n");
+        exit(1);
+    }
+    return stack->data[stack->top--];
+}
+
+char peek(Stack *stack) {
+    if (isEmpty(stack)) {
+        printf("Stack is empty\n");
+        exit(1);
+    }
+    return stack->data[stack->top];
+}
+
+int isEmpty(Stack *stack) {
+    return stack->top == -1;
+}
+
+int precedence(char operator) {
+    switch (operator) {
+        case '+':
+        case '-':
+            return 1;
+        case '*':
+        case '/':
+            return 2;
+        default:
+            return 0;
+    }
+}
+
+int isOperator(char symbol) {
+    return symbol == '+' || symbol == '-' || symbol == '*' || symbol == '/';
+}
+
+void infixToPostfix(const char *infix, char *postfix) {
+    Stack stack;
+    stack.top = -1;
+    int i = 0, j = 0;
+    while (infix[i] != '\0') {
+        if (isalnum(infix[i])) {
+            postfix[j++] = infix[i];
+        } else if (infix[i] == '(') {
+            push(&stack, infix[i]);
+        } else if (infix[i] == ')') {
+            while (!isEmpty(&stack) && peek(&stack) != '(') {
+                postfix[j++] = pop(&stack);
+            }
+            pop(&stack);
+        } else if (isOperator(infix[i])) {
+            while (!isEmpty(&stack) && precedence(peek(&stack)) >= precedence(infix[i])) {
+                postfix[j++] = pop(&stack);
+            }
+            push(&stack, infix[i]);
+        }
+        i++;
+    }
+    while (!isEmpty(&stack)) {
+        postfix[j++] = pop(&stack);
+    }
+    postfix[j] = '\0';
+}
